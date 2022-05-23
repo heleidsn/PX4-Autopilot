@@ -221,6 +221,21 @@ FixedwingAttitudeControl::vehicle_land_detected_poll()
 	}
 }
 
+void
+FixedwingAttitudeControl::debug_value_poll()
+{
+	if (_debug_value_sub.updated()) {
+		debug_value_s debug_value {};
+
+		if (_debug_value_sub.copy(&debug_value)) {
+			// update _roll_cmd_lgmd from debug value
+			_roll_cmd_lgmd = debug_value.value;
+		}
+	}
+}
+
+
+
 float FixedwingAttitudeControl::get_airspeed_and_update_scaling()
 {
 	_airspeed_validated_sub.update();
@@ -353,6 +368,7 @@ void FixedwingAttitudeControl::Run()
 		vehicle_control_mode_poll();
 		vehicle_manual_poll(euler_angles.psi());
 		vehicle_land_detected_poll();
+		debug_value_poll();
 
 		// the position controller will not emit attitude setpoints in some modes
 		// we need to make sure that this flag is reset
@@ -422,7 +438,18 @@ void FixedwingAttitudeControl::Run()
 			control_input.body_x_rate = rollspeed;
 			control_input.body_y_rate = pitchspeed;
 			control_input.body_z_rate = yawspeed;
-			control_input.roll_setpoint = _att_sp.roll_body;
+			// 感觉应该只需要修改以下量就可以了，使用拨杆进行选择使用哪个roll_setpoint
+			// step1 获得遥控器7通道数值， 获得roll_cmd_lgmd
+			// step2 根据数值大小和是否有lgmd输入判断使用哪个
+
+			if (_manual_control_setpoint.z >= 0.5f)
+			{
+				control_input.roll_setpoint = _roll_cmd_lgmd;
+			}
+			else
+			{
+				control_input.roll_setpoint = _att_sp.roll_body;
+			}
 			control_input.pitch_setpoint = _att_sp.pitch_body;
 			control_input.yaw_setpoint = _att_sp.yaw_body;
 			control_input.airspeed_min = _param_fw_airspd_stall.get();
