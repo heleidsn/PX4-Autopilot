@@ -66,6 +66,7 @@
 #include <uORB/topics/vehicle_land_detected.h>
 #include <uORB/topics/vehicle_rates_setpoint.h>
 #include <uORB/topics/vehicle_status.h>
+#include <uORB/topics/debug_value.h>
 
 using matrix::Eulerf;
 using matrix::Quatf;
@@ -105,6 +106,10 @@ private:
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};	/**< vehicle land detected subscription */
 	uORB::Subscription _vehicle_status_sub{ORB_ID(vehicle_status)};			/**< vehicle status subscription */
 	uORB::Subscription _vehicle_rates_sub{ORB_ID(vehicle_angular_velocity)};
+
+	// debug value
+	uORB::Subscription _debug_value_sub{ORB_ID(debug_value)};
+	float _roll_cmd_lgmd{0.0f};
 
 	uORB::SubscriptionData<airspeed_validated_s> _airspeed_validated_sub{ORB_ID(airspeed_validated)};
 
@@ -229,4 +234,5 @@ private:
 	void		vehicle_land_detected_poll();
 
 	float 		get_airspeed_and_update_scaling();
+	void		debug_value_poll();
 };
